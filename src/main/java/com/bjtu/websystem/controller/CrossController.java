@@ -1,11 +1,11 @@
 package com.bjtu.websystem.controller;
 
-import com.bjtu.websystem.common.utils.BinaryToFile;
+import com.bjtu.websystem.common.utils.readBinaryFile.BinaryToFile;
 import com.bjtu.websystem.common.utils.GPS;
 import com.bjtu.websystem.common.utils.GPS2Three;
 import com.bjtu.websystem.common.utils.GPSConverterUtils;
 import com.bjtu.websystem.model.Cross;
-import com.bjtu.websystem.model.ReturnedCarInfoModel;
+import com.bjtu.websystem.model.readFileModels.ReturnedCarInfoModel;
 import com.bjtu.websystem.service.CrossService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -33,9 +33,9 @@ public class CrossController {
 		for (int i = 0; i < GPSCrosses.size(); ++i) {
 			Cross myCross = GPSCrosses.get(i);
 			// 坐标转换
-			double longitude = myCross.getLongtitude();
+			double longitude = myCross.getLongitude();
 			double latitude = myCross.getLatitude();
-			GPS myGPS = GPSConverterUtils.gps84_To_Gcj02(longitude, latitude);
+			GPS myGPS = GPSConverterUtils.gps84_To_Gcj02(latitude, longitude);
 
 			//修改为转换后的值
 			GPSCrosses.set(
@@ -68,7 +68,7 @@ public class CrossController {
 
 	@RequestMapping("/getPath")
 	@ResponseBody
-	public ReturnedCarInfoModel getPath() throws IOException {
+	public ReturnedCarInfoModel getPath() throws IOException, InterruptedException {
 	    /**
 	    *  文件路径
 	    */

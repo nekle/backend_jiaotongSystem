@@ -1,6 +1,8 @@
-package com.bjtu.websystem.common.utils;
+package com.bjtu.websystem.common.utils.readBinaryFile;
 
-import com.bjtu.websystem.model.*;
+import com.bjtu.websystem.common.utils.GPS;
+import com.bjtu.websystem.common.utils.GPS2Three;
+import com.bjtu.websystem.model.readFileModels.*;
 import com.csvreader.CsvReader;
 
 import java.io.*;
@@ -9,6 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author Nekkl
@@ -17,13 +20,30 @@ import java.util.Map;
  * @date 2021/3/31 20:52
  */
 public class BinaryToFile {
-	public static ReturnedCarInfoModel readData(String carInfoPath, String crossGridPath, String linkGridPath, GPS2Three converter) throws IOException {
+	public static ReturnedCarInfoModel readData(String carInfoPath, String crossGridPath, String linkGridPath, GPS2Three converter) throws IOException, InterruptedException {
 		System.out.println("读取数据中...");
-		// 读取crossGrids字典
-		CrossGrid[] crossGrids = readCrossGridInfo(crossGridPath, converter);
+		CountDownLatch countDownLatch = new CountDownLatch(2);
+		// 读取crossGrids字典子线程
+		ReadCrossGridInfo readCrossGridInfo = new ReadCrossGridInfo();
+		readCrossGridInfo.setFilePath(crossGridPath);
+		readCrossGridInfo.setConverter(converter);
+		readCrossGridInfo.setCountDownLatch(countDownLatch);
+		readCrossGridInfo.start();
+//		CrossGrid[] crossGrids = readCrossGridInfo(crossGridPath, converter);
 
-		// 读取linkGrids字典
-		LinkGrid[] linkGrids = readLinkGridInfo(linkGridPath, converter);
+		// 读取linkGrids字典子线程
+		ReadLinkGridInfo readLinkGridInfo = new ReadLinkGridInfo();
+		readLinkGridInfo.setFilePath(linkGridPath);
+		readLinkGridInfo.setConverter(converter);
+		readLinkGridInfo.setCountDownLatch(countDownLatch);
+		readLinkGridInfo.start();
+
+		// 主线程取数据
+		// 阻塞主线程，直到子线程执行结束
+		countDownLatch.await();
+		CrossGrid[] crossGrids = readCrossGridInfo.getCrossGrids();
+		LinkGrid[] linkGrids = readLinkGridInfo.getLinkGrids();
+//		LinkGrid[] linkGrids = readLinkGridInfo(linkGridPath, converter);
 
 		// 创建 gridGPSHashMap 对象 存放 linkGrids 和 carInfo的映射
 		HashMap<Grid, GPS> gridGPSHashMap = new HashMap<Grid, GPS>(linkGrids.length);
@@ -57,37 +77,21 @@ public class BinaryToFile {
 			Map.Entry entry = (Map.Entry) iter.next();
 			Trail trail = (Trail) entry.getValue();
 
-//			int size = trail.getCoordinates().size();
-//			int j = 0;
-//			while (j < trail.getCoordinates().size() ){
-//				if((j%100) == 0){
-//					j++;
-//					continue;
-//				}else{
-//					trail.getCoordinates().remove(j);
-//					j--;
-//				}
-//				j++;
-//			}
 			count += trail.getCoordinates().size();
 
 			// 存放一个小车轨迹信息的坐标和时间序列
 			double[][] coordinates = new double[trail.getCoordinates().size()][3];
-			int[] times = new int[trail.getTimes().size()];
+			Integer[] times = new Integer[trail.getTimes().size()];
 
 			for (int j = 0 ;j < trail.getTimes().size(); ++j){
 				coordinates[j] = trail.getCoordinates().get(j).getThreePos();
-				times[j] = trail.getTimes().get(j).getTime();
+				times[j] = trail.getTimes().get(j);
 			}
 
 			Geometry geometry = new Geometry(trail.getStartTime(),trail.getEndTime(),trail.getCarType(), coordinates,times);
 			geometries[i++] = geometry;
 		}
-//		Trail trail = carInfoHashMap.get(300732);
-//		double[][] gpsTimeStamps = new double[trail.getCoordinates().size()][3];
-//		trail.getCoordinates().toArray(gpsTimeStamps);
-//		int carType = 1;
-//		Geometry geometry = new Geometry(trail.ge tStartTime(),trail.getEndTime(),carType, gpsTimeStamps);
+
 		ReturnedCarInfoModel returnedCarInfoModel = new ReturnedCarInfoModel(geometries, carInfoModel.getETime(), carInfoModel.getLTime());
 		System.out.println("数据总条数为：" + count);
 		System.out.println("往前端发送数据");
@@ -142,7 +146,7 @@ public class BinaryToFile {
 				if((trail = trailsHashMap.get(carInfoTemp.getCarNum()) )== null){
 
                     // // 如果此路径还未创建,则根据小车编号创建一条新路径，存放此路径内容的HashMap
-                    trail = new Trail(new LinkedList<Coordinate>(),new LinkedList<Time>(),carInfoTemp.getCarType(), 0, 0);
+                    trail = new Trail(new LinkedList<Coordinate>(),new LinkedList<Integer>(),carInfoTemp.getCarType(), 0, 0);
                     trailsHashMap.put(carInfoTemp.getCarNum(), trail);
 
                 }
@@ -150,7 +154,7 @@ public class BinaryToFile {
 				// 获取路径的LinkedList
 				LinkedList<Coordinate> coordinates = trail.getCoordinates();
 				// 获取路径的时间序列 times
-				LinkedList<Time> times = trail.getTimes();
+				LinkedList<Integer> times = trail.getTimes();
                 // 判断CrossType, 确定查找坐标的字典
                 if (carInfoTemp.getCrossType() == 0){
 
@@ -172,7 +176,7 @@ public class BinaryToFile {
 					// 加入时间序列
 					times.add(
 							(
-									new Time(carInfoTemp.getGlobalTime())
+									carInfoTemp.getGlobalTime()
 							)
 					);
                 }else {
@@ -195,7 +199,7 @@ public class BinaryToFile {
                                     carInfoTemp.getGrid()
                                     )
                             ).getLat(),
-							0
+							3.5
                     };
 					Coordinate coordinate = new Coordinate(threePos);
 
@@ -206,7 +210,7 @@ public class BinaryToFile {
 					// 加入时间序列
 					times.add(
 							(
-									new Time(carInfoTemp.getGlobalTime())
+									carInfoTemp.getGlobalTime()
 							)
 					);
 

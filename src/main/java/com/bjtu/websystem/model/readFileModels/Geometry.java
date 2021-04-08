@@ -1,4 +1,4 @@
-package com.bjtu.websystem.model;/**
+package com.bjtu.websystem.model.readFileModels;/**
  * @author zhangsan
  * @date 2021/4/1
  */
@@ -19,5 +19,5 @@ public class Geometry {
 	private int endTime;
 	private int carType;
 	private double[][] coordinates;
-	private int[] times;
+	private Integer[] times;
 }

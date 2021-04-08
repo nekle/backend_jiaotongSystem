@@ -10,7 +10,7 @@ import lombok.Data;
 public class Cross {
     private int id;
     private String name;
-    private double longtitude;
+    private double longitude;
     private double latitude;
     private int type;
     private int car_sum;
