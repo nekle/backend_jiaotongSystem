@@ -16,10 +16,17 @@ public interface ProjectService {
 	    * @param: [project]
 	    * @return: void
 	 */
+	// 项目读写
 	public boolean createProject(Project project);
+	public Project getProjectById(Integer id);
+
+	// 项目列表
 	public List<Project> getProjectsByPage(int currentPage, int pageSize);
 	public long getPageSum(int pageSize);
 	public Integer getProjectSum();
-	public Project getProjectById(Integer id);
+
+	// 项目搜索
     public List<Project> searchProject(String condition, Integer currentPage, Integer pageSize);
+	public long getSearchProjectPageSum(String condition, int pageSize);
+	public Integer getSearchProjectSum(String condition);
 }

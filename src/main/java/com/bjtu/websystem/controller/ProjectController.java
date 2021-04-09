@@ -130,7 +130,7 @@ public class ProjectController {
 	 */
 	@RequestMapping(value = "/getProjectsByPage", method = RequestMethod.GET)
 	@ResponseBody
-	public List<Project> getAllProjects(
+	public List<Project> getProjectsByPage(
 			@RequestParam(value = "currentPage", required = true) int currentPage,
 			@RequestParam(value = "pageSize", required = true) int pageSize
 	) {
@@ -146,7 +146,7 @@ public class ProjectController {
 	 */
 	@RequestMapping(value = "/getProjectsPageSum", method = RequestMethod.GET)
 	@ResponseBody
-	public long getAllProjects(
+	public long getProjectsPageSum(
 			@RequestParam(value = "pageSize", required = true) int pageSize
 	) {
 		return projcetService.getPageSum(pageSize);
@@ -211,9 +211,42 @@ public class ProjectController {
 		return "文件上传成功";
 	}
 
+	/**
+	    * @description: 按照条件模糊搜索名称或者场景满足的项目
+	    * @author Nekkl
+	    * @date: 2021/4/9 11:34
+	    * @param: [condition, currentPage, pageSize]
+	    * @return: List<Project> 满足条件的项目列表
+	 */
 	@GetMapping(value = "/searchProject")
 	@ResponseBody
 	public List<Project> searchProject(@RequestParam String condition, @RequestParam Integer currentPage, @RequestParam Integer pageSize){
 			return projcetService.searchProject(condition, currentPage, pageSize);
+	}
+
+	/**
+	    * @description: 获取搜索结果的项目总数
+	    * @author Nekkl
+	    * @date: 2021/4/9 11:35
+	    * @param: [condition]
+	    * @return: Integer 项目总数
+	 */
+	@GetMapping(value = "/getSearchProjectSum")
+	@ResponseBody
+	public Integer getSearchProjectSum(@RequestParam String condition){
+		return projcetService.getSearchProjectSum(condition);
+	}
+
+	/**
+	    * @description: 根据条件和页大小，获取总页数
+	    * @author Nekkl
+	    * @date: 2021/4/9 11:36
+	    * @param: [condition, pageSize]
+	    * @return: long 总页数
+	 */
+	@GetMapping(value = "/getSearchProjectPageSum")
+	@ResponseBody
+	public long getSearchProjectPageSum(@RequestParam String condition, @RequestParam Integer pageSize){
+		return projcetService.getSearchProjectPageSum(condition, pageSize);
 	}
 }

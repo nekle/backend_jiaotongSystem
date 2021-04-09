@@ -87,7 +87,25 @@ public class ProjectServiceImpl implements ProjectService {
 		List<Project> projects =projectIPage.getRecords();
 
 		return projects;
+
 	}
 
+	@Override
+	public long getSearchProjectPageSum(String condition, int pageSize) {
+
+		// 获取IPage对象
+		IPage<Project> projectIPage = projectMapper.selectPage(
+				new Page<>(1, pageSize),
+				new QueryWrapper<Project>().like("name",condition).or().like("scene",condition));
+		return projectIPage.getPages();
+
+	}
+
+	@Override
+	public Integer getSearchProjectSum(String condition) {
+
+		return projectMapper.selectCount(new QueryWrapper<Project>().like("name",condition).or().like("scene",condition));
+
+	}
 
 }
