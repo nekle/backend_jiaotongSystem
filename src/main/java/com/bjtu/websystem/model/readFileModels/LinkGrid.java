@@ -9,7 +9,7 @@ import lombok.Data;
 /**
  * @author Nekkl
  * @version 1.0
- * @description: TODO
+ * @description: 存储grid_xy_LONLAT.csv文件里一行的数据
  * @date 2021/3/31 19:52
  */
 @Data

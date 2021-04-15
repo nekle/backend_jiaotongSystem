@@ -1,4 +1,4 @@
-package com.bjtu.websystem.model;/**
+package com.bjtu.websystem.model.datasetModels;/**
  * @author zhangsan
  * @date 2021/4/6
  */
@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 /**
  * @author Nekkl
  * @version 1.0
- * @description: TODO
+ * @description: 项目对象，存储一个项目的有关信息
  * @date 2021/4/6 19:14
  */
 @Data
@@ -26,11 +26,12 @@ public class Project {
 	 * type = IdType.AUTO: 自增模式
 	 */
 	@TableId(type = IdType.AUTO)
-	private int id;
+	private Integer id;
 	private String name;
 	private String scene;
 	private String path;
 	private String dir;
-	private int status;
+	private Integer status;
 	private String date;
+	private Integer isOpen;
 }

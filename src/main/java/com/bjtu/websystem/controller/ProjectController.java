@@ -3,8 +3,11 @@ package com.bjtu.websystem.controller;/**
  * @date 2021/4/6
  */
 
+import com.bjtu.websystem.common.utils.cordConvertionUtils.GPS2Three;
 import com.bjtu.websystem.common.utils.createDir.DirectoryUtil;
-import com.bjtu.websystem.model.Project;
+import com.bjtu.websystem.common.utils.readBinaryFile.BinaryToFile;
+import com.bjtu.websystem.model.datasetModels.Project;
+import com.bjtu.websystem.model.readFileModels.ReturnedCarInfoModel;
 import com.bjtu.websystem.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -16,7 +19,9 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Nekkl
@@ -29,6 +34,12 @@ import java.util.List;
 public class ProjectController {
 	@Autowired
 	ProjectService projcetService;
+	/***
+	 * code 请求响应代码
+	 */
+	private static final int SUCCESS = 0;
+	private static final int FAILURE = 1;
+	private static final int EXCEPTION = 2;
 
 	/**
 	 * @description: 创建项目
@@ -183,7 +194,7 @@ public class ProjectController {
 			@RequestPart("map_img") MultipartFile map_img,
 			@RequestPart("map_info") MultipartFile map_info,
 			@RequestParam(value = "project_id", required = true) Integer id
-	)  {
+	) {
 
 		// 判断是否成功收到文件
 		if (cross.isEmpty() || link.isEmpty() || link_points.isEmpty() || grds.length == 0 || map_img.isEmpty() || map_info.isEmpty()) {
@@ -212,41 +223,148 @@ public class ProjectController {
 	}
 
 	/**
-	    * @description: 按照条件模糊搜索名称或者场景满足的项目
-	    * @author Nekkl
-	    * @date: 2021/4/9 11:34
-	    * @param: [condition, currentPage, pageSize]
-	    * @return: List<Project> 满足条件的项目列表
+	 * @description: 按照条件模糊搜索名称或者场景满足的项目
+	 * @author Nekkl
+	 * @date: 2021/4/9 11:34
+	 * @param: [condition, currentPage, pageSize]
+	 * @return: List<Project> 满足条件的项目列表
 	 */
 	@GetMapping(value = "/searchProject")
 	@ResponseBody
-	public List<Project> searchProject(@RequestParam String condition, @RequestParam Integer currentPage, @RequestParam Integer pageSize){
-			return projcetService.searchProject(condition, currentPage, pageSize);
+	public List<Project> searchProject(@RequestParam String condition, @RequestParam Integer currentPage, @RequestParam Integer pageSize) {
+		return projcetService.searchProject(condition, currentPage, pageSize);
 	}
 
 	/**
-	    * @description: 获取搜索结果的项目总数
-	    * @author Nekkl
-	    * @date: 2021/4/9 11:35
-	    * @param: [condition]
-	    * @return: Integer 项目总数
+	 * @description: 获取搜索结果的项目总数
+	 * @author Nekkl
+	 * @date: 2021/4/9 11:35
+	 * @param: [condition]
+	 * @return: Integer 项目总数
 	 */
 	@GetMapping(value = "/getSearchProjectSum")
 	@ResponseBody
-	public Integer getSearchProjectSum(@RequestParam String condition){
+	public Integer getSearchProjectSum(@RequestParam String condition) {
 		return projcetService.getSearchProjectSum(condition);
 	}
 
 	/**
-	    * @description: 根据条件和页大小，获取总页数
-	    * @author Nekkl
-	    * @date: 2021/4/9 11:36
-	    * @param: [condition, pageSize]
-	    * @return: long 总页数
+	 * @description: 根据条件和页大小，获取总页数
+	 * @author Nekkl
+	 * @date: 2021/4/9 11:36
+	 * @param: [condition, pageSize]
+	 * @return: long 总页数
 	 */
 	@GetMapping(value = "/getSearchProjectPageSum")
 	@ResponseBody
-	public long getSearchProjectPageSum(@RequestParam String condition, @RequestParam Integer pageSize){
+	public long getSearchProjectPageSum(@RequestParam String condition, @RequestParam Integer pageSize) {
 		return projcetService.getSearchProjectPageSum(condition, pageSize);
 	}
+
+	/**
+	 * @description: 根据Id打开项目
+	 * @author Nekkl
+	 * @date: 2021/4/11 12:04
+	 * @param: [id] 项目Id
+	 * @return: boolean 打开结果
+	 */
+	@PostMapping(value = "/openProjectById")
+	@ResponseBody
+	public Map<String, Object> openProjectById(@RequestParam Integer id) {
+
+		Map<String, Object> resMap = new HashMap<String, Object>(1);
+		resMap.put("code", projcetService.openProject(id));
+		return resMap;
+
+	}
+
+	/**
+	 * @description: 关闭已经打开的项目
+	 * @author Nekkl
+	 * @date: 2021/4/11 20:03
+	 * @param: []
+	 * @return: java.lang.String 关闭结果
+	 */
+	@PostMapping("/closeProject")
+	@ResponseBody
+	public Map<String, Object> closeProject() {
+
+		Map<String,Object> resMap = new HashMap<String, Object>(1);
+		resMap.put("code", projcetService.closeProject());
+		return resMap;
+
+	}
+
+	/**
+	    * @description: 获取当前打开的项目
+	    * @author Nekkl
+	    * @date: 2021/4/11 20:22
+	    * @param: []
+	    * @return: com.bjtu.websystem.model.datasetModels.Project 当前打开的项目对象
+	 */
+	@PostMapping("/getOpenedProject")
+	@ResponseBody
+	public Map<String, Object> getOpenedProject(){
+		Map<String, Object> resMap = new HashMap<String, Object>(2);
+		Project project = projcetService.getOpenedProject();
+		resMap.put("project", project);
+
+		if (project == null){
+			// 操作失败,操作码为 1
+			resMap.put("code", FAILURE);
+			return resMap;
+		}
+		// 操作成功，操作码为 0
+		resMap.put("code", SUCCESS);
+		return resMap;
+
+	}
+
+	@RequestMapping("/getPath")
+	@ResponseBody
+	public Map<String, Object> getPath() {
+		Map<String, Object> resMap = new HashMap<String, Object>(2);
+
+		// 读取当前打开的项目
+		Project project = projcetService.getOpenedProject();
+		if (project == null){
+			// code = 1 当前没有打开的项目
+			resMap.put("code", FAILURE);
+			return resMap;
+		}
+
+		// 获得文件夹
+		String dir = project.getDir();
+		// 生成文件路径
+		String carInfoPath = dir + "\\1_input\\4_screen\\carInfo.txt";
+		String crossGridPath = dir + "\\1_input\\4_screen\\cross_xy_LONLAT.csv";
+		String linkGridPath = dir + "\\1_input\\4_screen\\grid_xy_LONLAT.csv";
+		// 地图信息路径
+
+		/**
+		 * 坐标转换参数，生成坐标转换器
+		 */
+		double width = 500;
+		double left = 117.421875000;
+		double right = 117.553710938;
+		double top = 23.906250000;
+		double bottom = 23.774414063;
+
+		GPS2Three converter = new GPS2Three(width, left, right, top, bottom);
+
+		ReturnedCarInfoModel returnedCarInfoModel;
+		try {
+			returnedCarInfoModel = BinaryToFile.readData(carInfoPath, crossGridPath, linkGridPath, converter);
+		}catch (Exception e){
+			resMap.put("code", EXCEPTION);
+			return resMap;
+		}
+
+		resMap.put("data", returnedCarInfoModel);
+		resMap.put("code", SUCCESS);
+		return resMap;
+
+	}
+
+
 }

@@ -1,9 +1,6 @@
-package com.bjtu.websystem.common;
+package com.bjtu.websystem.common.utils.cordConvertionUtils;
 
-import com.bjtu.websystem.common.utils.GPS;
-import com.bjtu.websystem.common.utils.GPSConverterUtils;
-
-public class testConvertion {
+public class TestConversion {
     public static void main(String[] args){
          GPS myGPS = new GPS(23.8312,117.4879);
          GPS newGPS =  GPSConverterUtils.gps84_To_Gcj02(myGPS.getLat(),myGPS.getLon());

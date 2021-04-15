@@ -1,7 +1,7 @@
 package com.bjtu.websystem.common.utils.readBinaryFile;
 
-import com.bjtu.websystem.common.utils.GPS;
-import com.bjtu.websystem.common.utils.GPS2Three;
+import com.bjtu.websystem.common.utils.cordConvertionUtils.GPS;
+import com.bjtu.websystem.common.utils.cordConvertionUtils.GPS2Three;
 import com.bjtu.websystem.model.readFileModels.LinkGrid;
 import com.csvreader.CsvReader;
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package com.bjtu.websystem.common.utils;
+package com.bjtu.websystem.common.utils.cordConvertionUtils;
 
 /**
  * 坐标转换工具类
@@ -41,7 +41,7 @@ public class GPSConverterUtils {
         dLon = (dLon * 180.0) / (a / sqrtMagic * Math.cos(radLat) * pi);
         double mgLat = lat + dLat;
         double mgLon = lon + dLon;
-        return new GPS(mgLat, mgLon);
+        return new GPS(mgLon, mgLat);
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.bjtu.websystem.common.utils;
+package com.bjtu.websystem.common.utils.cordConvertionUtils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

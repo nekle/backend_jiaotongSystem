@@ -1,6 +1,6 @@
 package com.bjtu.websystem.service;
 
-import com.bjtu.websystem.model.Link;
+import com.bjtu.websystem.model.datasetModels.Link;
 
 import java.util.List;
 
@@ -13,4 +13,5 @@ public interface LinkService {
         * @return: List<Link>
      */
     public List<Link> getAllLinks();
+    public int editLinkById(Link link);
 }

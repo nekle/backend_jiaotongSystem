@@ -1,6 +1,6 @@
 package com.bjtu.websystem.service;
 
-import com.bjtu.websystem.model.Project;
+import com.bjtu.websystem.model.datasetModels.Project;
 
 import java.util.List;
 
@@ -29,4 +29,9 @@ public interface ProjectService {
     public List<Project> searchProject(String condition, Integer currentPage, Integer pageSize);
 	public long getSearchProjectPageSum(String condition, int pageSize);
 	public Integer getSearchProjectSum(String condition);
+
+	// 项目管理
+	public Integer openProject(int id);
+	public Integer closeProject();
+	public Project getOpenedProject();
 }
